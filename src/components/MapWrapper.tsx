@@ -10,44 +10,36 @@ import Image from "next/image";
 
 const LANDMARKS = [
   {
-    id: "treehouse",
+    id: "logic",
     name: "Sanctum of Logic",
-    top: "28%",
-    left: "32%",
+    top: "35%",
+    left: "25%",
     route: "/projects",
-    description: "The architectural marvel where magic meets computational logic."
+    description: "Where complex logic spells are woven into digital reality."
   },
   {
-    id: "castle",
+    id: "citadel",
     name: "Digital Citadel",
-    top: "62%",
-    left: "72%",
-    route: "/blog",
-    description: "A fortress housing the ancient scrolls of knowledge."
+    top: "65%",
+    left: "75%",
+    route: "/projects",
+    description: "The primary fortress of our engineering achievements."
   },
   {
-    id: "cave",
+    id: "caverns",
     name: "Crystal Caverns",
-    top: "78%",
-    left: "22%",
+    top: "80%",
+    left: "30%",
     route: "/gallery",
-    description: "Luminescent gems reflecting the explorer's visual journey."
+    description: "Visual treasures hidden deep within the mountain pass."
   },
   {
-    id: "clouds",
+    id: "peaks",
     name: "Cloud Peaks",
-    top: "18%",
-    left: "82%",
-    route: "/skills",
-    description: "The highest summits where true mastery is achieved."
-  },
-  {
-    id: "tent",
-    name: "Explorer's Hub",
-    top: "52%",
-    left: "48%",
+    top: "20%",
+    left: "85%",
     route: "/about",
-    description: "The personal sanctuary of the world's most curious traveler."
+    description: "The highest reach of our vision and long-term goals."
   }
 ];
 
@@ -55,39 +47,39 @@ export default function MapWrapper() {
   const mapImg = PlaceHolderImages.find(img => img.id === 'world-map')?.imageUrl || "";
   
   return (
-    <div className="map-container select-none overflow-hidden h-screen w-screen bg-black">
+    <div className="map-container">
       <TransformWrapper
-        initialScale={1.1}
+        initialScale={1}
         minScale={1}
         maxScale={3}
         centerOnInit={true}
         limitToBounds={true}
-        disabled={false}
         panning={{ 
-          velocityDisabled: false, 
-          lockAxisX: false, 
+          velocityDisabled: false,
+          lockAxisX: false,
           lockAxisY: false,
         }}
-        wheel={{ step: 0.1 }}
+        wheel={{ step: 0.05 }}
         doubleClick={{ disabled: true }}
       >
         <TransformComponent
           wrapperStyle={{ width: "100vw", height: "100vh" }}
-          contentStyle={{ width: "2400px", height: "1600px" }}
+          contentStyle={{ width: "100vw", height: "100vh" }}
         >
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="relative w-[2400px] h-[1600px]"
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="relative w-[100vw] h-[100vh]"
           >
-            {/* The Map Background */}
+            {/* The Map Background - Lazy Loaded & Object Fit Cover */}
             <Image 
               src={mapImg} 
               alt="World Map" 
               fill
               priority
-              className="object-cover pointer-events-none brightness-90 contrast-110"
+              loading="eager"
+              className="object-cover pointer-events-none brightness-[0.85] contrast-[1.05]"
               data-ai-hint="fantasy map"
             />
             
@@ -98,8 +90,8 @@ export default function MapWrapper() {
               ))}
             </div>
 
-            {/* Subtle Overlay Texture */}
-            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-20 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+            {/* Subtle Texture Overlay */}
+            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-10 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
           </motion.div>
         </TransformComponent>
       </TransformWrapper>

@@ -3,8 +3,8 @@
     {
       "id": "world-map",
       "description": "High-quality detailed fantasy adventure map background",
-      "imageUrl": "https://picsum.photos/seed/adventure-atlas-99/2400/1600",
-      "imageHint": "fantasy map landscape"
+      "imageUrl": "https://images.unsplash.com/photo-1580137469216-991316c47c59?q=80&w=2400&auto=format&fit=crop",
+      "imageHint": "antique map parchment"
     }
   ]
 }

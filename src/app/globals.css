@@ -33,16 +33,16 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body overflow-hidden h-screen w-screen select-none;
+    @apply bg-black text-foreground font-body overflow-hidden h-screen w-screen select-none;
   }
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
 }
 
 .map-container {
@@ -50,7 +50,7 @@
   height: 100vh;
   position: relative;
   overflow: hidden;
-  background: #0a0a0a;
+  background: #000;
 }
 
 ::-webkit-scrollbar {
