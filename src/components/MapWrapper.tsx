@@ -74,7 +74,7 @@ export default function MapWrapper() {
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
             className="relative w-[100vw] h-[100vh]"
           >
-            {/* The Map Background - Forced to cover and constrained */}
+            {/* The Map Background */}
             <Image 
               src={mapImg} 
               alt="World Map" 

@@ -1,4 +1,3 @@
-import { config } from 'dotenv';
-config();
 
-import '@/ai/flows/generate-landmark-descriptions.ts';
+// AI functionality has been removed as requested.
+export {};
