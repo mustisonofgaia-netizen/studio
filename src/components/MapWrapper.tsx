@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import MapLandmark from "./MapLandmark";
 import Image from "next/image";
 
@@ -10,32 +10,32 @@ const LANDMARKS = [
   {
     id: "logic",
     name: "Sanctum of Logic",
-    top: "35%",
-    left: "25%",
+    top: "45%",
+    left: "40%",
     route: "/projects",
     description: "Where complex logic spells are woven into digital reality."
   },
   {
     id: "citadel",
     name: "Digital Citadel",
-    top: "65%",
-    left: "75%",
+    top: "55%",
+    left: "60%",
     route: "/projects",
     description: "The primary fortress of our engineering achievements."
   },
   {
     id: "caverns",
     name: "Crystal Caverns",
-    top: "80%",
-    left: "30%",
+    top: "60%",
+    left: "45%",
     route: "/gallery",
     description: "Visual treasures hidden deep within the mountain pass."
   },
   {
     id: "peaks",
     name: "Cloud Peaks",
-    top: "20%",
-    left: "85%",
+    top: "40%",
+    left: "55%",
     route: "/about",
     description: "The highest reach of our vision and long-term goals."
   }
@@ -46,12 +46,12 @@ export default function MapWrapper() {
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const mapImg = "/background_landing_page.png";
 
-  // Bouncy Spring Config for organic movement
-  const springConfig = { stiffness: 120, damping: 25, mass: 0.8 };
+  // Increased damping to 30 to prevent bouncy overshoot from revealing black bars
+  const springConfig = { stiffness: 120, damping: 30, mass: 0.8 };
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const scale = useMotionValue(1.15); // Start slightly zoomed to use provided margins
+  const scale = useMotionValue(1.6); // Higher initial scale to focus on the "Safe Zone"
 
   const springX = useSpring(x, springConfig);
   const springY = useSpring(y, springConfig);
@@ -66,28 +66,47 @@ export default function MapWrapper() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Strict constraint calculation to prevent any black space
-  // This calculates the maximum allowed movement based on current zoom level
+  /**
+   * Refactored Constraint Math:
+   * The actual map is ~60% of the image (0.6).
+   * We treat the map area as the "Safe Zone" but allow a buffer (the beige margins)
+   * to be visible to ensure the black background is never revealed.
+   */
   const getConstraints = () => {
+    if (windowSize.width === 0) return { left: 0, right: 0, top: 0, bottom: 0 };
+
     const s = scale.get();
-    const overWidth = (windowSize.width * s - windowSize.width) / 2;
-    const overHeight = (windowSize.height * s - windowSize.height) / 2;
     
+    // Total image dimension (fills viewport at scale 1.0 because of object-cover)
+    const imgW = windowSize.width * s;
+    const imgH = windowSize.height * s;
+
+    // Calculate maximum movement allowed to reach the edge of the IMAGE file
+    // This is the absolute limit to prevent black background
+    const maxEdgeX = (imgW - windowSize.width) / 2;
+    const maxEdgeY = (imgH - windowSize.height) / 2;
+
+    // We want the camera to "feel" like it stops at the colored map area (60% of image)
+    // but the actual drag constraint is the image edge.
     return {
-      left: -overWidth,
-      right: overWidth,
-      top: -overHeight,
-      bottom: overHeight,
+      left: -maxEdgeX,
+      right: maxEdgeX,
+      top: -maxEdgeY,
+      bottom: maxEdgeY,
     };
   };
 
   const handleWheel = (e: React.WheelEvent) => {
     // Zoom sensitivity
     const delta = e.deltaY * -0.0015;
-    const newScale = Math.min(Math.max(scale.get() + delta, 1.05), 3.5);
+    
+    // Min scale 1.5 ensures map (60% of image) fills ~90% of a 1.0 viewport
+    const minScale = 1.5; 
+    const maxScale = 4.0;
+    const newScale = Math.min(Math.max(scale.get() + delta, minScale), maxScale);
     scale.set(newScale);
 
-    // Re-clamp position immediately on zoom to prevent edges showing
+    // Re-clamp position immediately on zoom to ensure we stay within image bounds
     const c = getConstraints();
     if (x.get() < c.left) x.set(c.left);
     if (x.get() > c.right) x.set(c.right);
@@ -104,7 +123,7 @@ export default function MapWrapper() {
       <motion.div
         drag
         dragConstraints={getConstraints()}
-        dragElastic={0.05}
+        dragElastic={0.1}
         dragMomentum={true}
         style={{
           x: springX,
@@ -121,7 +140,7 @@ export default function MapWrapper() {
           fill
           priority
           unoptimized
-          className="object-cover pointer-events-none select-none brightness-[0.95] contrast-[1.02]"
+          className="object-cover pointer-events-none select-none brightness-[0.98] contrast-[1.01]"
         />
         
         {/* Absolute Centered Markers */}
@@ -135,7 +154,7 @@ export default function MapWrapper() {
         </div>
 
         {/* Subtle Paper Grain Texture Overlay */}
-        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-15 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-10 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
       </motion.div>
     </div>
   );
