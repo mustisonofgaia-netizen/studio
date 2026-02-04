@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -47,12 +46,12 @@ export default function MapWrapper() {
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const mapImg = PlaceHolderImages.find(img => img.id === 'world-map')?.imageUrl || "";
 
-  // Interaction Values
+  // Core Motion Values
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const scale = useMotionValue(1.1);
 
-  // Organic Bouncy Physics
+  // Bouncy Spring Physics (Stiffness: 100, Damping: 20 as requested)
   const springConfig = { stiffness: 100, damping: 20 };
   const springX = useSpring(x, springConfig);
   const springY = useSpring(y, springConfig);
@@ -67,19 +66,31 @@ export default function MapWrapper() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Calculate constraints to prevent showing black background
-  // Assumes object-fit: cover makes the base image at scale 1 fill the viewport
-  const dragConstraints = {
-    left: -(windowSize.width * (scale.get() - 1)) / 2,
-    right: (windowSize.width * (scale.get() - 1)) / 2,
-    top: -(windowSize.height * (scale.get() - 1)) / 2,
-    bottom: (windowSize.height * (scale.get() - 1)) / 2,
+  // Calculate strict constraints based on scale to prevent black bars
+  const calculateConstraints = () => {
+    const s = scale.get();
+    const overWidth = (windowSize.width * s - windowSize.width) / 2;
+    const overHeight = (windowSize.height * s - windowSize.height) / 2;
+    return {
+      left: -overWidth,
+      right: overWidth,
+      top: -overHeight,
+      bottom: overHeight,
+    };
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-    const delta = e.deltaY * -0.001;
-    const newScale = Math.min(Math.max(scale.get() + delta, 1), 3);
+    const delta = e.deltaY * -0.002;
+    const currentScale = scale.get();
+    const newScale = Math.min(Math.max(currentScale + delta, 1), 3);
     scale.set(newScale);
+
+    // Re-clamp position if zooming out pushes edges past viewport
+    const constraints = calculateConstraints();
+    if (x.get() < constraints.left) x.set(constraints.left);
+    if (x.get() > constraints.right) x.set(constraints.right);
+    if (y.get() < constraints.top) y.set(constraints.top);
+    if (y.get() > constraints.bottom) y.set(constraints.bottom);
   };
 
   if (!mapImg) return null;
@@ -87,13 +98,14 @@ export default function MapWrapper() {
   return (
     <div 
       ref={containerRef}
-      className="map-container"
+      className="map-container bg-black"
       onWheel={handleWheel}
     >
       <motion.div
         drag
-        dragConstraints={dragConstraints}
+        dragConstraints={calculateConstraints()}
         dragElastic={0.1}
+        dragMomentum={false}
         style={{
           x: springX,
           y: springY,
@@ -111,19 +123,22 @@ export default function MapWrapper() {
           fill
           priority
           unoptimized
-          className="object-cover pointer-events-none brightness-[0.9] contrast-[1.05]"
+          className="object-cover pointer-events-none brightness-[0.85] contrast-[1.1]"
           data-ai-hint="fantasy map"
         />
         
-        {/* Markers Layer */}
+        {/* Markers Layer - Scaled with the map */}
         <div className="absolute inset-0 z-10 pointer-events-none">
           {LANDMARKS.map((landmark) => (
-            <MapLandmark key={landmark.id} {...landmark} containerX={springX} containerY={springY} />
+            <MapLandmark 
+              key={landmark.id} 
+              {...landmark} 
+            />
           ))}
         </div>
 
         {/* Subtle Texture Overlay */}
-        <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-15 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+        <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-10 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
       </motion.div>
     </div>
   );

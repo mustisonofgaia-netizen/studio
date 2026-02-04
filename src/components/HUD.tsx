@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -14,26 +13,26 @@ export default function HUD() {
 
   return (
     <>
-      {/* Top Right - Secondary Navigation Stack (Slim Glass) */}
-      <div className="fixed top-6 right-6 z-[100]">
+      {/* Top Right - Secondary Navigation Stack (Tiny Elegant Glass) */}
+      <div className="fixed top-8 right-8 z-[100]">
         <motion.div 
-          initial={{ x: 20, opacity: 0 }}
+          initial={{ x: 30, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ type: "spring", ...springConfig }}
-          className="flex flex-col gap-2 p-1 glass-panel rounded-full"
+          className="flex flex-col gap-3 p-1.5 glass-panel rounded-full"
         >
           <SecondaryNavItem icon={Info} href="/about" active={pathname === "/about"} />
           <SecondaryNavItem icon={Mail} href="/contact" active={pathname === "/contact"} />
         </motion.div>
       </div>
 
-      {/* Bottom Center - Main Floating Navigation Bar (Dock Style) */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
+      {/* Bottom Center - Main Floating Navigation Bar (Ultra-Thin Dock) */}
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]">
         <motion.div 
-          initial={{ y: 50, opacity: 0 }}
+          initial={{ y: 60, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", ...springConfig }}
-          className="flex items-center gap-1.5 p-1.5 glass-panel rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+          className="flex items-center gap-2 p-2 glass-panel rounded-2xl"
         >
           <DockNavItem icon={MapIcon} href="/" active={pathname === "/"} />
           <div className="w-[1px] h-6 bg-white/10 mx-1" />
@@ -49,11 +48,11 @@ function DockNavItem({ icon: Icon, href, active }: { icon: any, href: string, ac
   return (
     <Link href={href}>
       <motion.div
-        whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.15)" }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }}
+        whileTap={{ scale: 0.9 }}
         className={cn(
-          "p-2.5 rounded-xl transition-all duration-300",
-          active ? "bg-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "text-white/40 hover:text-white"
+          "p-3 rounded-xl transition-all duration-300",
+          active ? "bg-white/20 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)]" : "text-white/40 hover:text-white"
         )}
       >
         <Icon className="w-5 h-5" strokeWidth={1.5} />
@@ -66,10 +65,10 @@ function SecondaryNavItem({ icon: Icon, href, active }: { icon: any, href: strin
   return (
     <Link href={href}>
       <motion.div
-        whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.08)" }}
+        whileTap={{ scale: 0.9 }}
         className={cn(
-          "p-2 rounded-full transition-all duration-300",
+          "p-2.5 rounded-full transition-all duration-300",
           active ? "bg-white/25 text-white" : "text-white/30 hover:text-white"
         )}
       >
