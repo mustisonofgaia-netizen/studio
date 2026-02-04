@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -46,8 +45,10 @@ const LANDMARKS = [
 export default function MapWrapper() {
   const mapImg = PlaceHolderImages.find(img => img.id === 'world-map')?.imageUrl || "";
   
+  if (!mapImg) return <div className="w-screen h-screen bg-black flex items-center justify-center text-white">Loading Map...</div>;
+
   return (
-    <div className="map-container">
+    <div className="map-container bg-black">
       <TransformWrapper
         initialScale={1}
         minScale={1}
@@ -72,13 +73,12 @@ export default function MapWrapper() {
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
             className="relative w-[100vw] h-[100vh]"
           >
-            {/* The Map Background - Lazy Loaded & Object Fit Cover */}
+            {/* The Map Background */}
             <Image 
               src={mapImg} 
               alt="World Map" 
               fill
               priority
-              loading="eager"
               className="object-cover pointer-events-none brightness-[0.85] contrast-[1.05]"
               data-ai-hint="fantasy map"
             />
