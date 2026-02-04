@@ -51,7 +51,7 @@ export default function MapWrapper() {
   return (
     <div className="map-container bg-black overflow-hidden w-screen h-screen">
       <TransformWrapper
-        initialScale={1}
+        initialScale={1.1}
         minScale={1}
         maxScale={3}
         centerOnInit={true}
@@ -61,7 +61,7 @@ export default function MapWrapper() {
           lockAxisX: false,
           lockAxisY: false,
         }}
-        wheel={{ step: 0.1 }}
+        wheel={{ step: 0.05 }}
         doubleClick={{ disabled: true }}
       >
         <TransformComponent
@@ -69,31 +69,33 @@ export default function MapWrapper() {
           contentStyle={{ width: "100vw", height: "100vh" }}
         >
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
             className="relative w-[100vw] h-[100vh]"
           >
-            {/* The Map Background */}
+            {/* The Map Background - Forced to cover and constrained */}
             <Image 
               src={mapImg} 
               alt="World Map" 
               fill
               priority
               unoptimized
-              className="object-cover pointer-events-none brightness-[0.9]"
+              className="object-cover pointer-events-none brightness-[0.85] contrast-[1.05]"
               data-ai-hint="fantasy map"
             />
             
             {/* Markers Layer */}
-            <div className="absolute inset-0 z-10">
-              {LANDMARKS.map((landmark) => (
-                <MapLandmark key={landmark.id} {...landmark} />
-              ))}
+            <div className="absolute inset-0 z-10 pointer-events-none">
+              <div className="relative w-full h-full pointer-events-auto">
+                {LANDMARKS.map((landmark) => (
+                  <MapLandmark key={landmark.id} {...landmark} />
+                ))}
+              </div>
             </div>
 
             {/* Subtle Texture Overlay */}
-            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-5 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+            <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-10 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
           </motion.div>
         </TransformComponent>
       </TransformWrapper>
