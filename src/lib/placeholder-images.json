@@ -2,8 +2,8 @@
   "placeholderImages": [
     {
       "id": "world-map",
-      "description": "High-quality detailed fantasy adventure map background",
-      "imageUrl": "https://iili.io/fti58ZB.png",
+      "description": "High-quality upscaled fantasy adventure map background",
+      "imageUrl": "/background_landing_page.png",
       "imageHint": "fantasy map parchment"
     }
   ]

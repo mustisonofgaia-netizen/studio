@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import MapLandmark from "./MapLandmark";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
@@ -46,13 +46,13 @@ export default function MapWrapper() {
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const mapImg = PlaceHolderImages.find(img => img.id === 'world-map')?.imageUrl || "";
 
-  // Core Motion Values
+  // Bouncy Spring Config (Stiffness 100, Damping 20)
+  const springConfig = { stiffness: 100, damping: 20, mass: 0.5 };
+
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const scale = useMotionValue(1.1);
 
-  // Bouncy Spring Physics (Stiffness: 100, Damping: 20 as requested)
-  const springConfig = { stiffness: 100, damping: 20 };
   const springX = useSpring(x, springConfig);
   const springY = useSpring(y, springConfig);
   const springScale = useSpring(scale, springConfig);
@@ -66,11 +66,12 @@ export default function MapWrapper() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Calculate strict constraints based on scale to prevent black bars
-  const calculateConstraints = () => {
+  // Strict constraint calculation to prevent any black space
+  const getConstraints = () => {
     const s = scale.get();
     const overWidth = (windowSize.width * s - windowSize.width) / 2;
     const overHeight = (windowSize.height * s - windowSize.height) / 2;
+    
     return {
       left: -overWidth,
       right: overWidth,
@@ -80,20 +81,19 @@ export default function MapWrapper() {
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-    const delta = e.deltaY * -0.002;
-    const currentScale = scale.get();
-    const newScale = Math.min(Math.max(currentScale + delta, 1), 3);
+    const delta = e.deltaY * -0.001;
+    const newScale = Math.min(Math.max(scale.get() + delta, 1.0), 3.0);
     scale.set(newScale);
 
-    // Re-clamp position if zooming out pushes edges past viewport
-    const constraints = calculateConstraints();
-    if (x.get() < constraints.left) x.set(constraints.left);
-    if (x.get() > constraints.right) x.set(constraints.right);
-    if (y.get() < constraints.top) y.set(constraints.top);
-    if (y.get() > constraints.bottom) y.set(constraints.bottom);
+    // Re-clamp position on zoom
+    const c = getConstraints();
+    if (x.get() < c.left) x.set(c.left);
+    if (x.get() > c.right) x.set(c.right);
+    if (y.get() < c.top) y.set(c.top);
+    if (y.get() > c.bottom) y.set(c.bottom);
   };
 
-  if (!mapImg) return null;
+  if (!mapImg) return <div className="map-container bg-black" />;
 
   return (
     <div 
@@ -103,7 +103,7 @@ export default function MapWrapper() {
     >
       <motion.div
         drag
-        dragConstraints={calculateConstraints()}
+        dragConstraints={getConstraints()}
         dragElastic={0.1}
         dragMomentum={false}
         style={{
@@ -123,11 +123,10 @@ export default function MapWrapper() {
           fill
           priority
           unoptimized
-          className="object-cover pointer-events-none brightness-[0.85] contrast-[1.1]"
-          data-ai-hint="fantasy map"
+          className="object-cover pointer-events-none brightness-[0.9] contrast-[1.05]"
         />
         
-        {/* Markers Layer - Scaled with the map */}
+        {/* Absolute Centered Markers */}
         <div className="absolute inset-0 z-10 pointer-events-none">
           {LANDMARKS.map((landmark) => (
             <MapLandmark 
@@ -137,8 +136,8 @@ export default function MapWrapper() {
           ))}
         </div>
 
-        {/* Subtle Texture Overlay */}
-        <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-10 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+        {/* Paper Grain Overlay */}
+        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-20 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
       </motion.div>
     </div>
   );
