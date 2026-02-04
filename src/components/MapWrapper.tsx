@@ -1,9 +1,8 @@
 
 "use client";
 
-import React from "react";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { motion } from "framer-motion";
+import React, { useState, useRef, useEffect } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import MapLandmark from "./MapLandmark";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
@@ -44,61 +43,88 @@ const LANDMARKS = [
 ];
 
 export default function MapWrapper() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const mapImg = PlaceHolderImages.find(img => img.id === 'world-map')?.imageUrl || "";
-  
-  if (!mapImg) return <div className="w-screen h-screen bg-black flex items-center justify-center text-white">Loading Map...</div>;
+
+  // Interaction Values
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const scale = useMotionValue(1.1);
+
+  // Organic Bouncy Physics
+  const springConfig = { stiffness: 100, damping: 20 };
+  const springX = useSpring(x, springConfig);
+  const springY = useSpring(y, springConfig);
+  const springScale = useSpring(scale, springConfig);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Calculate constraints to prevent showing black background
+  // Assumes object-fit: cover makes the base image at scale 1 fill the viewport
+  const dragConstraints = {
+    left: -(windowSize.width * (scale.get() - 1)) / 2,
+    right: (windowSize.width * (scale.get() - 1)) / 2,
+    top: -(windowSize.height * (scale.get() - 1)) / 2,
+    bottom: (windowSize.height * (scale.get() - 1)) / 2,
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    const delta = e.deltaY * -0.001;
+    const newScale = Math.min(Math.max(scale.get() + delta, 1), 3);
+    scale.set(newScale);
+  };
+
+  if (!mapImg) return null;
 
   return (
-    <div className="map-container bg-black overflow-hidden w-screen h-screen">
-      <TransformWrapper
-        initialScale={1.1}
-        minScale={1}
-        maxScale={3}
-        centerOnInit={true}
-        limitToBounds={true}
-        panning={{ 
-          velocityDisabled: false,
-          lockAxisX: false,
-          lockAxisY: false,
+    <div 
+      ref={containerRef}
+      className="map-container"
+      onWheel={handleWheel}
+    >
+      <motion.div
+        drag
+        dragConstraints={dragConstraints}
+        dragElastic={0.1}
+        style={{
+          x: springX,
+          y: springY,
+          scale: springScale,
+          width: "100vw",
+          height: "100vh",
+          cursor: "grab",
         }}
-        wheel={{ step: 0.05 }}
-        doubleClick={{ disabled: true }}
+        whileTap={{ cursor: "grabbing" }}
+        className="relative"
       >
-        <TransformComponent
-          wrapperStyle={{ width: "100vw", height: "100vh" }}
-          contentStyle={{ width: "100vw", height: "100vh" }}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-[100vw] h-[100vh]"
-          >
-            {/* The Map Background */}
-            <Image 
-              src={mapImg} 
-              alt="World Map" 
-              fill
-              priority
-              unoptimized
-              className="object-cover pointer-events-none brightness-[0.85] contrast-[1.05]"
-              data-ai-hint="fantasy map"
-            />
-            
-            {/* Markers Layer */}
-            <div className="absolute inset-0 z-10 pointer-events-none">
-              <div className="relative w-full h-full pointer-events-auto">
-                {LANDMARKS.map((landmark) => (
-                  <MapLandmark key={landmark.id} {...landmark} />
-                ))}
-              </div>
-            </div>
+        <Image 
+          src={mapImg} 
+          alt="World Map" 
+          fill
+          priority
+          unoptimized
+          className="object-cover pointer-events-none brightness-[0.9] contrast-[1.05]"
+          data-ai-hint="fantasy map"
+        />
+        
+        {/* Markers Layer */}
+        <div className="absolute inset-0 z-10 pointer-events-none">
+          {LANDMARKS.map((landmark) => (
+            <MapLandmark key={landmark.id} {...landmark} containerX={springX} containerY={springY} />
+          ))}
+        </div>
 
-            {/* Subtle Texture Overlay */}
-            <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-10 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
-          </motion.div>
-        </TransformComponent>
-      </TransformWrapper>
+        {/* Subtle Texture Overlay */}
+        <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-15 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+      </motion.div>
     </div>
   );
 }

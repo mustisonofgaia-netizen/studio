@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, MotionValue } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -13,6 +13,8 @@ interface MapLandmarkProps {
   left: string;
   route: string;
   description: string;
+  containerX?: MotionValue<number>;
+  containerY?: MotionValue<number>;
 }
 
 export default function MapLandmark({ id, name, top, left, route, description }: MapLandmarkProps) {
@@ -50,7 +52,14 @@ export default function MapLandmark({ id, name, top, left, route, description }:
   return (
     <div
       id={`marker-${id}`}
-      style={{ position: "absolute", top, left, transform: "translate(-50%, -50%)", zIndex: isOpen ? 100 : 10 }}
+      style={{ 
+        position: "absolute", 
+        top, 
+        left, 
+        transform: "translate(-50%, -50%)", 
+        zIndex: isOpen ? 100 : 10,
+        pointerEvents: "auto"
+      }}
       className="flex flex-col items-center"
     >
       <AnimatePresence>
@@ -62,14 +71,14 @@ export default function MapLandmark({ id, name, top, left, route, description }:
             transition={{ type: "spring", stiffness: 150, damping: 20 }}
             className="absolute bottom-full mb-8 z-50 min-w-[280px]"
           >
-            <div className="bg-white/5 backdrop-blur-[15px] border border-white/20 p-6 rounded-[2rem] shadow-2xl">
+            <div className="glass-panel p-6 rounded-[2rem] shadow-2xl">
               <div className="flex justify-between items-start mb-3">
                 <h3 className="font-bold text-white text-[10px] uppercase tracking-[0.2em]">{name}</h3>
                 <button onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} className="text-white/40 hover:text-white transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-[12px] text-white/60 leading-relaxed mb-6 font-light">{description}</p>
+              <p className="text-[12px] text-white/80 leading-relaxed mb-6 font-light">{description}</p>
               <button 
                 onClick={() => router.push(route)}
                 className="w-full flex items-center justify-center gap-3 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all text-[10px] font-black uppercase tracking-[0.2em] border border-white/10"
@@ -103,9 +112,9 @@ export default function MapLandmark({ id, name, top, left, route, description }:
       {!isOpen && (
         <motion.span 
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.5 }}
+          animate={{ opacity: 0.7 }}
           whileHover={{ opacity: 1 }}
-          className="mt-2 text-[9px] font-black text-white uppercase tracking-[0.4em] pointer-events-none drop-shadow-md"
+          className="mt-2 text-[9px] font-black text-white uppercase tracking-[0.4em] pointer-events-none drop-shadow-md text-center"
         >
           {name}
         </motion.span>
