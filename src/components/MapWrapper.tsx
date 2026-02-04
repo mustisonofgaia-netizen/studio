@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -48,7 +49,7 @@ export default function MapWrapper() {
   if (!mapImg) return <div className="w-screen h-screen bg-black flex items-center justify-center text-white">Loading Map...</div>;
 
   return (
-    <div className="map-container bg-black">
+    <div className="map-container bg-black overflow-hidden w-screen h-screen">
       <TransformWrapper
         initialScale={1}
         minScale={1}
@@ -60,7 +61,7 @@ export default function MapWrapper() {
           lockAxisX: false,
           lockAxisY: false,
         }}
-        wheel={{ step: 0.05 }}
+        wheel={{ step: 0.1 }}
         doubleClick={{ disabled: true }}
       >
         <TransformComponent
@@ -68,9 +69,9 @@ export default function MapWrapper() {
           contentStyle={{ width: "100vw", height: "100vh" }}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
             className="relative w-[100vw] h-[100vh]"
           >
             {/* The Map Background */}
@@ -79,7 +80,8 @@ export default function MapWrapper() {
               alt="World Map" 
               fill
               priority
-              className="object-cover pointer-events-none brightness-[0.85] contrast-[1.05]"
+              unoptimized
+              className="object-cover pointer-events-none brightness-[0.9]"
               data-ai-hint="fantasy map"
             />
             
@@ -91,7 +93,7 @@ export default function MapWrapper() {
             </div>
 
             {/* Subtle Texture Overlay */}
-            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-10 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-5 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
           </motion.div>
         </TransformComponent>
       </TransformWrapper>

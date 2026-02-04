@@ -24,8 +24,8 @@ export default function MapLandmark({ id, name, top, left, route, description }:
   const mouseY = useMotionValue(0);
 
   const springConfig = { stiffness: 100, damping: 20 };
-  const rotateX = useSpring(useTransform(mouseY, [-300, 300], [10, -10]), springConfig);
-  const rotateY = useSpring(useTransform(mouseX, [-300, 300], [-10, 10]), springConfig);
+  const rotateX = useSpring(useTransform(mouseY, [-300, 300], [15, -15]), springConfig);
+  const rotateY = useSpring(useTransform(mouseX, [-300, 300], [-15, 15]), springConfig);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -33,9 +33,9 @@ export default function MapLandmark({ id, name, top, left, route, description }:
       if (!rect) return;
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      // Only track if relatively close
       const dist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
-      if (dist < 400) {
+      
+      if (dist < 500) {
         mouseX.set(e.clientX - centerX);
         mouseY.set(e.clientY - centerY);
       } else {
@@ -56,25 +56,25 @@ export default function MapLandmark({ id, name, top, left, route, description }:
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.9, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ type: "spring", stiffness: 200, damping: 25 }}
-            className="absolute bottom-full mb-6 z-50 min-w-[240px]"
+            exit={{ opacity: 0, scale: 0.9, y: 15 }}
+            transition={{ type: "spring", stiffness: 150, damping: 20 }}
+            className="absolute bottom-full mb-8 z-50 min-w-[280px]"
           >
-            <div className="glass-panel p-5 rounded-2xl text-left shadow-2xl">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-bold text-white text-xs uppercase tracking-widest">{name}</h3>
-                <button onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} className="text-white/30 hover:text-white transition-colors">
-                  <X className="w-3.5 h-3.5" />
+            <div className="bg-white/5 backdrop-blur-[15px] border border-white/20 p-6 rounded-[2rem] shadow-2xl">
+              <div className="flex justify-between items-start mb-3">
+                <h3 className="font-bold text-white text-[10px] uppercase tracking-[0.2em]">{name}</h3>
+                <button onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} className="text-white/40 hover:text-white transition-colors">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-[11px] text-white/50 leading-relaxed mb-4 font-light">{description}</p>
+              <p className="text-[12px] text-white/60 leading-relaxed mb-6 font-light">{description}</p>
               <button 
                 onClick={() => router.push(route)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all text-[9px] font-black uppercase tracking-[0.15em] border border-white/10"
+                className="w-full flex items-center justify-center gap-3 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all text-[10px] font-black uppercase tracking-[0.2em] border border-white/10"
               >
-                Explore Area <ArrowRight className="w-3 h-3" />
+                Journey Forward <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </motion.div>
@@ -83,29 +83,29 @@ export default function MapLandmark({ id, name, top, left, route, description }:
 
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        style={{ rotateX, rotateY, perspective: 800 }}
-        whileHover={{ scale: 1.2 }}
-        whileTap={{ scale: 0.9 }}
-        className="relative group p-4"
+        style={{ rotateX, rotateY, perspective: 1000 }}
+        whileHover={{ scale: 1.15 }}
+        whileTap={{ scale: 0.95 }}
+        className="relative group p-6"
       >
-        <div className="relative w-5 h-5 flex items-center justify-center">
+        <div className="relative w-6 h-6 flex items-center justify-center">
           {/* Outer Pulsing Ring */}
           <motion.div 
-            animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0.1, 0.4] }}
+            animate={{ scale: [1, 1.6, 1], opacity: [0.5, 0.1, 0.5] }}
             transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-            className="absolute inset-0 border border-white/50 rounded-full" 
+            className="absolute inset-0 border-[1.5px] border-white/40 rounded-full" 
           />
-          {/* Inner Marker Dot */}
-          <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)] transition-all group-hover:scale-125" />
+          {/* Inner Marker Ring */}
+          <div className="w-2.5 h-2.5 border-[2px] border-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.6)]" />
         </div>
       </motion.button>
       
       {!isOpen && (
         <motion.span 
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.4 }}
+          animate={{ opacity: 0.5 }}
           whileHover={{ opacity: 1 }}
-          className="mt-2 text-[8px] font-black text-white uppercase tracking-[0.3em] pointer-events-none"
+          className="mt-2 text-[9px] font-black text-white uppercase tracking-[0.4em] pointer-events-none drop-shadow-md"
         >
           {name}
         </motion.span>
