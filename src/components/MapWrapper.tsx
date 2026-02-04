@@ -1,9 +1,9 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import MapLandmark from "./MapLandmark";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 
 const LANDMARKS = [
@@ -44,14 +44,14 @@ const LANDMARKS = [
 export default function MapWrapper() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-  const mapImg = PlaceHolderImages.find(img => img.id === 'world-map')?.imageUrl || "";
+  const mapImg = "/background_landing_page.png";
 
-  // Bouncy Spring Config (Stiffness 100, Damping 20)
-  const springConfig = { stiffness: 100, damping: 20, mass: 0.5 };
+  // Bouncy Spring Config for organic movement
+  const springConfig = { stiffness: 120, damping: 25, mass: 0.8 };
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const scale = useMotionValue(1.1);
+  const scale = useMotionValue(1.15); // Start slightly zoomed to use provided margins
 
   const springX = useSpring(x, springConfig);
   const springY = useSpring(y, springConfig);
@@ -67,6 +67,7 @@ export default function MapWrapper() {
   }, []);
 
   // Strict constraint calculation to prevent any black space
+  // This calculates the maximum allowed movement based on current zoom level
   const getConstraints = () => {
     const s = scale.get();
     const overWidth = (windowSize.width * s - windowSize.width) / 2;
@@ -81,11 +82,12 @@ export default function MapWrapper() {
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-    const delta = e.deltaY * -0.001;
-    const newScale = Math.min(Math.max(scale.get() + delta, 1.0), 3.0);
+    // Zoom sensitivity
+    const delta = e.deltaY * -0.0015;
+    const newScale = Math.min(Math.max(scale.get() + delta, 1.05), 3.5);
     scale.set(newScale);
 
-    // Re-clamp position on zoom
+    // Re-clamp position immediately on zoom to prevent edges showing
     const c = getConstraints();
     if (x.get() < c.left) x.set(c.left);
     if (x.get() > c.right) x.set(c.right);
@@ -93,28 +95,24 @@ export default function MapWrapper() {
     if (y.get() > c.bottom) y.set(c.bottom);
   };
 
-  if (!mapImg) return <div className="map-container bg-black" />;
-
   return (
     <div 
       ref={containerRef}
-      className="map-container bg-black"
+      className="map-container bg-black cursor-grab active:cursor-grabbing"
       onWheel={handleWheel}
     >
       <motion.div
         drag
         dragConstraints={getConstraints()}
-        dragElastic={0.1}
-        dragMomentum={false}
+        dragElastic={0.05}
+        dragMomentum={true}
         style={{
           x: springX,
           y: springY,
           scale: springScale,
           width: "100vw",
           height: "100vh",
-          cursor: "grab",
         }}
-        whileTap={{ cursor: "grabbing" }}
         className="relative"
       >
         <Image 
@@ -123,7 +121,7 @@ export default function MapWrapper() {
           fill
           priority
           unoptimized
-          className="object-cover pointer-events-none brightness-[0.9] contrast-[1.05]"
+          className="object-cover pointer-events-none select-none brightness-[0.95] contrast-[1.02]"
         />
         
         {/* Absolute Centered Markers */}
@@ -136,8 +134,8 @@ export default function MapWrapper() {
           ))}
         </div>
 
-        {/* Paper Grain Overlay */}
-        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-20 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+        {/* Subtle Paper Grain Texture Overlay */}
+        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-15 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
       </motion.div>
     </div>
   );
