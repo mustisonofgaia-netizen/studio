@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "world-map",
-      "description": "High-quality stylized fantasy world map landscape",
-      "imageUrl": "https://picsum.photos/seed/adventure-map-v2/2400/1600",
-      "imageHint": "fantasy landscape map"
+      "description": "High-quality detailed fantasy adventure map background",
+      "imageUrl": "https://picsum.photos/seed/adventure-atlas-99/2400/1600",
+      "imageHint": "fantasy map landscape"
     }
   ]
 }

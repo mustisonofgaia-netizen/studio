@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useRef } from "react";
+import React from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { motion } from "framer-motion";
 import MapLandmark from "./MapLandmark";
@@ -11,41 +11,41 @@ import Image from "next/image";
 const LANDMARKS = [
   {
     id: "treehouse",
-    name: "Great Treehouse",
-    top: "25%",
-    left: "30%",
+    name: "Sanctum of Logic",
+    top: "28%",
+    left: "32%",
     route: "/projects",
-    description: "The architectural marvel where magic meets logic."
+    description: "The architectural marvel where magic meets computational logic."
   },
   {
     id: "castle",
     name: "Digital Citadel",
-    top: "60%",
-    left: "70%",
+    top: "62%",
+    left: "72%",
     route: "/blog",
     description: "A fortress housing the ancient scrolls of knowledge."
   },
   {
     id: "cave",
     name: "Crystal Caverns",
-    top: "75%",
-    left: "20%",
+    top: "78%",
+    left: "22%",
     route: "/gallery",
     description: "Luminescent gems reflecting the explorer's visual journey."
   },
   {
     id: "clouds",
     name: "Cloud Peaks",
-    top: "15%",
-    left: "80%",
+    top: "18%",
+    left: "82%",
     route: "/skills",
     description: "The highest summits where true mastery is achieved."
   },
   {
     id: "tent",
-    name: "Explorer's Camp",
-    top: "50%",
-    left: "45%",
+    name: "Explorer's Hub",
+    top: "52%",
+    left: "48%",
     route: "/about",
     description: "The personal sanctuary of the world's most curious traveler."
   }
@@ -62,20 +62,19 @@ export default function MapWrapper() {
         maxScale={3}
         centerOnInit
         limitToBounds={true}
-        smooth={true}
-        alignmentAnimation={{ size: 0 }}
+        disabled={false}
+        panning={{ velocityDisabled: false, lockAxisX: false, lockAxisY: false }}
         doubleClick={{ disabled: true }}
-        panning={{ velocityDisabled: false }}
       >
         <TransformComponent
           wrapperStyle={{ width: "100vw", height: "100vh" }}
           contentStyle={{ width: "100vw", height: "100vh" }}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="relative w-[2400px] h-[1600px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="relative w-[2400px] h-[1600px] bg-[#0a0a0a]"
             style={{ 
               width: "2400px", 
               height: "1600px",
@@ -86,15 +85,20 @@ export default function MapWrapper() {
               src={mapImg} 
               alt="World Map" 
               fill
-              priority
-              className="object-cover pointer-events-none brightness-95 contrast-[1.05]"
-              data-ai-hint="fantasy landscape map"
+              loading="lazy"
+              className="object-cover pointer-events-none brightness-75 contrast-125"
+              data-ai-hint="fantasy map"
             />
             
-            {/* Landmark Markers */}
-            {LANDMARKS.map((landmark) => (
-              <MapLandmark key={landmark.id} {...landmark} />
-            ))}
+            {/* Markers Layer */}
+            <div className="absolute inset-0 z-10">
+              {LANDMARKS.map((landmark) => (
+                <MapLandmark key={landmark.id} {...landmark} />
+              ))}
+            </div>
+
+            {/* Subtle Overlay Texture */}
+            <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-30 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
           </motion.div>
         </TransformComponent>
       </TransformWrapper>

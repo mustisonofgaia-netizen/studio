@@ -3,7 +3,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Home, Info, Mail, LayoutGrid, Sparkles, Map as MapIcon } from "lucide-react";
+import { Info, Mail, LayoutGrid, Sparkles, Map as MapIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -11,17 +11,20 @@ import { cn } from "@/lib/utils";
 export default function HUD() {
   const pathname = usePathname();
 
+  const springConfig = { stiffness: 100, damping: 20 };
+
   return (
     <>
       {/* Top Right - Secondary Navigation */}
-      <div className="fixed top-6 right-6 z-[100] flex flex-col gap-2">
+      <div className="fixed top-6 right-6 z-[100]">
         <motion.div 
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          className="flex flex-col gap-2 p-1.5 glass-panel rounded-2xl"
+          transition={{ type: "spring", ...springConfig }}
+          className="flex flex-col gap-2 p-1 glass-panel rounded-xl"
         >
-          <SecondaryNavItem icon={Info} href="/about" label="About" active={pathname === "/about"} />
-          <SecondaryNavItem icon={Mail} href="/contact" label="Contact" active={pathname === "/contact"} />
+          <SecondaryNavItem icon={Info} href="/about" active={pathname === "/about"} />
+          <SecondaryNavItem icon={Mail} href="/contact" active={pathname === "/contact"} />
         </motion.div>
       </div>
 
@@ -30,10 +33,11 @@ export default function HUD() {
         <motion.div 
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="flex items-center gap-2 p-2 glass-panel rounded-[2rem]"
+          transition={{ type: "spring", ...springConfig }}
+          className="flex items-center gap-1.5 p-1.5 glass-panel rounded-2xl"
         >
           <DockNavItem icon={MapIcon} href="/" active={pathname === "/"} />
-          <div className="w-[1px] h-6 bg-white/20 mx-1" />
+          <div className="w-[1px] h-4 bg-white/10 mx-0.5" />
           <DockNavItem icon={LayoutGrid} href="/projects" active={pathname === "/projects"} />
           <DockNavItem icon={Sparkles} href="/gallery" active={pathname === "/gallery"} />
         </motion.div>
@@ -46,11 +50,11 @@ function DockNavItem({ icon: Icon, href, active }: { icon: any, href: string, ac
   return (
     <Link href={href}>
       <motion.div
-        whileHover={{ scale: 1.1, y: -2 }}
+        whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }}
         whileTap={{ scale: 0.9 }}
         className={cn(
-          "p-3 rounded-full transition-colors duration-200",
-          active ? "bg-white/20 text-white" : "text-white/60 hover:text-white hover:bg-white/10"
+          "p-2.5 rounded-xl transition-all duration-200",
+          active ? "bg-white/20 text-white shadow-inner" : "text-white/50 hover:text-white"
         )}
       >
         <Icon className="w-5 h-5" strokeWidth={1.5} />
@@ -59,15 +63,15 @@ function DockNavItem({ icon: Icon, href, active }: { icon: any, href: string, ac
   );
 }
 
-function SecondaryNavItem({ icon: Icon, href, active }: { icon: any, href: string, label: string, active: boolean }) {
+function SecondaryNavItem({ icon: Icon, href, active }: { icon: any, href: string, active: boolean }) {
   return (
     <Link href={href}>
       <motion.div
-        whileHover={{ scale: 1.05 }}
+        whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
         whileTap={{ scale: 0.95 }}
         className={cn(
-          "p-2.5 rounded-xl transition-all duration-200",
-          active ? "bg-white/30 text-white" : "text-white/70 hover:text-white hover:bg-white/10"
+          "p-2 rounded-lg transition-all duration-200",
+          active ? "bg-white/20 text-white" : "text-white/40 hover:text-white"
         )}
       >
         <Icon className="w-4 h-4" strokeWidth={2} />
