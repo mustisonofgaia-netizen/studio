@@ -3,94 +3,75 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Scroll, Home, Info, Mail, Menu } from "lucide-react";
+import { Home, Info, Mail, LayoutGrid, Sparkles, Map as MapIcon } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function HUD() {
+  const pathname = usePathname();
+
   return (
     <>
-      {/* Top Left - Quest Log */}
-      <div className="fixed top-6 left-6 z-[100]">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button size="lg" className="rounded-full h-14 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl border-4 border-white/20">
-                <Scroll className="mr-2 h-6 w-6" />
-                <span className="font-bold text-lg tracking-wide">QUEST LOG</span>
-              </Button>
-            </motion.div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-64 p-2 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-primary">
-            <DropdownMenuLabel className="text-primary font-bold px-3 py-2">Active Quests</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild className="cursor-pointer focus:bg-secondary/20">
-              <Link href="/projects" className="flex items-center p-3">
-                <span className="w-2 h-2 rounded-full bg-primary mr-3" />
-                <span className="font-medium">Build the Portfolio</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="cursor-pointer focus:bg-secondary/20">
-              <Link href="/blog" className="flex items-center p-3">
-                <span className="w-2 h-2 rounded-full bg-secondary mr-3" />
-                <span className="font-medium">Read the Ancient Scrolls</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="cursor-pointer focus:bg-secondary/20">
-              <Link href="/gallery" className="flex items-center p-3">
-                <span className="w-2 h-2 rounded-full bg-accent mr-3" />
-                <span className="font-medium">Visit Crystal Caverns</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="cursor-pointer focus:bg-secondary/20">
-              <Link href="/skills" className="flex items-center p-3">
-                <span className="w-2 h-2 rounded-full bg-green-400 mr-3" />
-                <span className="font-medium">Master New Skills</span>
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {/* Top Right - Secondary Navigation */}
+      <div className="fixed top-6 right-6 z-[100] flex flex-col gap-2">
+        <motion.div 
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          className="flex flex-col gap-2 p-1.5 glass-panel rounded-2xl"
+        >
+          <SecondaryNavItem icon={Info} href="/about" label="About" active={pathname === "/about"} />
+          <SecondaryNavItem icon={Mail} href="/contact" label="Contact" active={pathname === "/contact"} />
+        </motion.div>
       </div>
 
-      {/* Bottom Center - Floating Dock */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-6">
+      {/* Bottom Center - Main Dock */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
         <motion.div 
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="flex items-center justify-around p-3 bg-white/80 backdrop-blur-xl border-4 border-white shadow-2xl rounded-full"
+          className="flex items-center gap-2 p-2 glass-panel rounded-[2rem]"
         >
-          <DockItem icon={Home} label="Home" href="/" />
-          <div className="w-px h-8 bg-border" />
-          <DockItem icon={Info} label="About" href="/about" />
-          <div className="w-px h-8 bg-border" />
-          <DockItem icon={Mail} label="Contact" href="/contact" />
+          <DockNavItem icon={MapIcon} href="/" active={pathname === "/"} />
+          <div className="w-[1px] h-6 bg-white/20 mx-1" />
+          <DockNavItem icon={LayoutGrid} href="/projects" active={pathname === "/projects"} />
+          <DockNavItem icon={Sparkles} href="/gallery" active={pathname === "/gallery"} />
         </motion.div>
       </div>
     </>
   );
 }
 
-function DockItem({ icon: Icon, label, href }: { icon: any, label: string, href: string }) {
+function DockNavItem({ icon: Icon, href, active }: { icon: any, href: string, active: boolean }) {
   return (
-    <Link href={href} className="flex flex-col items-center group">
+    <Link href={href}>
       <motion.div
-        whileHover={{ y: -5, scale: 1.1 }}
-        className="p-3 rounded-2xl group-hover:bg-primary transition-colors duration-200"
+        whileHover={{ scale: 1.1, y: -2 }}
+        whileTap={{ scale: 0.9 }}
+        className={cn(
+          "p-3 rounded-full transition-colors duration-200",
+          active ? "bg-white/20 text-white" : "text-white/60 hover:text-white hover:bg-white/10"
+        )}
       >
-        <Icon className="w-6 h-6 group-hover:text-primary-foreground" />
+        <Icon className="w-5 h-5" strokeWidth={1.5} />
       </motion.div>
-      <span className="text-[10px] font-bold uppercase tracking-tighter mt-1 opacity-0 group-hover:opacity-100 transition-opacity">{label}</span>
+    </Link>
+  );
+}
+
+function SecondaryNavItem({ icon: Icon, href, active }: { icon: any, href: string, label: string, active: boolean }) {
+  return (
+    <Link href={href}>
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className={cn(
+          "p-2.5 rounded-xl transition-all duration-200",
+          active ? "bg-white/30 text-white" : "text-white/70 hover:text-white hover:bg-white/10"
+        )}
+      >
+        <Icon className="w-4 h-4" strokeWidth={2} />
+      </motion.div>
     </Link>
   );
 }

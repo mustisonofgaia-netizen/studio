@@ -1,112 +1,93 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
 import MapLandmark from "./MapLandmark";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import Image from "next/image";
 
 const LANDMARKS = [
   {
     id: "treehouse",
     name: "Great Treehouse",
-    icon: "trees",
     top: "25%",
     left: "30%",
     route: "/projects",
-    description: "Home to the legendary builders and their amazing creations."
+    description: "The architectural marvel where magic meets logic."
   },
   {
     id: "castle",
     name: "Digital Citadel",
-    icon: "castle",
     top: "60%",
     left: "70%",
     route: "/blog",
-    description: "A fortress of knowledge where thoughts are pixelated into stories."
+    description: "A fortress housing the ancient scrolls of knowledge."
   },
   {
     id: "cave",
     name: "Crystal Caverns",
-    icon: "gem",
     top: "75%",
     left: "20%",
     route: "/gallery",
-    description: "Deep underground, shining gems reveal a gallery of visual wonders."
+    description: "Luminescent gems reflecting the explorer's visual journey."
   },
   {
     id: "clouds",
     name: "Cloud Peaks",
-    icon: "cloud",
     top: "15%",
     left: "80%",
     route: "/skills",
-    description: "Reach for the summit to master the arts of magic and logic."
+    description: "The highest summits where true mastery is achieved."
   },
   {
     id: "tent",
     name: "Explorer's Camp",
-    icon: "tent",
     top: "50%",
     left: "45%",
     route: "/about",
-    description: "A cozy spot for stories about the adventurer behind the map."
+    description: "The personal sanctuary of the world's most curious traveler."
   }
 ];
 
 export default function MapWrapper() {
   const mapImg = PlaceHolderImages.find(img => img.id === 'world-map')?.imageUrl || "";
   
-  // Parallax values
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  
-  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
-  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const { clientX, clientY } = e;
-    const { innerWidth, innerHeight } = window;
-    
-    // Calculate normalized position (-0.5 to 0.5)
-    const x = (clientX / innerWidth) - 0.5;
-    const y = (clientY / innerHeight) - 0.5;
-    
-    mouseX.set(x * -40); // Move map slightly opposite to cursor
-    mouseY.set(y * -40);
-  };
-
   return (
-    <div 
-      className="map-container"
-      onMouseMove={handleMouseMove}
-    >
+    <div className="map-container select-none">
       <TransformWrapper
         initialScale={1}
-        minScale={0.5}
+        minScale={1}
         maxScale={3}
         centerOnInit
-        wheel={{ step: 0.1 }}
+        limitToBounds={true}
+        smooth={true}
+        alignmentAnimation={{ size: 0 }}
+        doubleClick={{ disabled: true }}
+        panning={{ velocityDisabled: false }}
       >
         <TransformComponent
-          wrapperStyle={{ width: "100%", height: "100%" }}
-          contentStyle={{ width: "2400px", height: "1600px" }}
+          wrapperStyle={{ width: "100vw", height: "100vh" }}
+          contentStyle={{ width: "100vw", height: "100vh" }}
         >
           <motion.div
-            style={{
-              x: springX,
-              y: springY,
-              position: "relative",
-              width: "2400px",
-              height: "1600px"
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="relative w-[2400px] h-[1600px]"
+            style={{ 
+              width: "2400px", 
+              height: "1600px",
             }}
           >
-            {/* The Map Background */}
-            <img 
+            {/* The Map Background - Lazy Loaded High Res */}
+            <Image 
               src={mapImg} 
               alt="World Map" 
-              className="w-full h-full object-cover select-none pointer-events-none opacity-80"
+              fill
+              priority
+              className="object-cover pointer-events-none brightness-95 contrast-[1.05]"
               data-ai-hint="fantasy landscape map"
             />
             
