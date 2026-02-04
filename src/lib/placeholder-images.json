@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "world-map",
+      "description": "Stylized fantasy world map landscape",
+      "imageUrl": "https://picsum.photos/seed/adventure-map/2400/1600",
+      "imageHint": "fantasy landscape map"
+    }
+  ]
 }
