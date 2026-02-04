@@ -55,38 +55,39 @@ export default function MapWrapper() {
   const mapImg = PlaceHolderImages.find(img => img.id === 'world-map')?.imageUrl || "";
   
   return (
-    <div className="map-container select-none">
+    <div className="map-container select-none overflow-hidden h-screen w-screen bg-black">
       <TransformWrapper
-        initialScale={1}
+        initialScale={1.1}
         minScale={1}
         maxScale={3}
-        centerOnInit
+        centerOnInit={true}
         limitToBounds={true}
         disabled={false}
-        panning={{ velocityDisabled: false, lockAxisX: false, lockAxisY: false }}
+        panning={{ 
+          velocityDisabled: false, 
+          lockAxisX: false, 
+          lockAxisY: false,
+        }}
+        wheel={{ step: 0.1 }}
         doubleClick={{ disabled: true }}
       >
         <TransformComponent
           wrapperStyle={{ width: "100vw", height: "100vh" }}
-          contentStyle={{ width: "100vw", height: "100vh" }}
+          contentStyle={{ width: "2400px", height: "1600px" }}
         >
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.5, ease: "easeOut" }}
-            className="relative w-[2400px] h-[1600px] bg-[#0a0a0a]"
-            style={{ 
-              width: "2400px", 
-              height: "1600px",
-            }}
+            className="relative w-[2400px] h-[1600px]"
           >
-            {/* The Map Background - Lazy Loaded High Res */}
+            {/* The Map Background */}
             <Image 
               src={mapImg} 
               alt="World Map" 
               fill
-              loading="lazy"
-              className="object-cover pointer-events-none brightness-75 contrast-125"
+              priority
+              className="object-cover pointer-events-none brightness-90 contrast-110"
               data-ai-hint="fantasy map"
             />
             
@@ -98,7 +99,7 @@ export default function MapWrapper() {
             </div>
 
             {/* Subtle Overlay Texture */}
-            <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-30 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-20 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
           </motion.div>
         </TransformComponent>
       </TransformWrapper>
