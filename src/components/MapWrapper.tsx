@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import MapLandmark from "./MapLandmark";
 import Image from "next/image";
@@ -44,14 +44,13 @@ const LANDMARKS = [
 export default function MapWrapper() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-  const mapImg = "/background_landing_page.png";
+  const mapImg = "https://iili.io/fti58ZB.png";
 
-  // Increased damping to 30 to prevent bouncy overshoot from revealing black bars
-  const springConfig = { stiffness: 120, damping: 30, mass: 0.8 };
+  const springConfig = { stiffness: 150, damping: 30, mass: 0.8 };
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const scale = useMotionValue(1.6); // Higher initial scale to focus on the "Safe Zone"
+  const scale = useMotionValue(1.5); // Start at a comfortable zoom
 
   const springX = useSpring(x, springConfig);
   const springY = useSpring(y, springConfig);
@@ -66,58 +65,48 @@ export default function MapWrapper() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  /**
-   * Refactored Constraint Math:
-   * The actual map is ~60% of the image (0.6).
-   * We treat the map area as the "Safe Zone" but allow a buffer (the beige margins)
-   * to be visible to ensure the black background is never revealed.
-   */
-  const getConstraints = () => {
+  const getConstraints = useCallback(() => {
     if (windowSize.width === 0) return { left: 0, right: 0, top: 0, bottom: 0 };
 
-    const s = scale.get();
+    const currentScale = scale.get();
     
-    // Total image dimension (fills viewport at scale 1.0 because of object-cover)
-    const imgW = windowSize.width * s;
-    const imgH = windowSize.height * s;
+    // Physical Bound Logic: (windowDimension * currentScale - windowDimension) / 2
+    const horizontalBound = (windowSize.width * currentScale - windowSize.width) / 2;
+    const verticalBound = (windowSize.height * currentScale - windowSize.height) / 2;
 
-    // Calculate maximum movement allowed to reach the edge of the IMAGE file
-    // This is the absolute limit to prevent black background
-    const maxEdgeX = (imgW - windowSize.width) / 2;
-    const maxEdgeY = (imgH - windowSize.height) / 2;
-
-    // We want the camera to "feel" like it stops at the colored map area (60% of image)
-    // but the actual drag constraint is the image edge.
     return {
-      left: -maxEdgeX,
-      right: maxEdgeX,
-      top: -maxEdgeY,
-      bottom: maxEdgeY,
+      left: -horizontalBound,
+      right: horizontalBound,
+      top: -verticalBound,
+      bottom: verticalBound,
     };
-  };
+  }, [windowSize, scale]);
 
   const handleWheel = (e: React.WheelEvent) => {
     // Zoom sensitivity
-    const delta = e.deltaY * -0.0015;
+    const delta = e.deltaY * -0.001;
     
-    // Min scale 1.5 ensures map (60% of image) fills ~90% of a 1.0 viewport
-    const minScale = 1.5; 
+    // Enforce Scale Floor: Minimum 1.3 to ensure full coverage
+    const minScale = 1.3; 
     const maxScale = 4.0;
     const newScale = Math.min(Math.max(scale.get() + delta, minScale), maxScale);
     scale.set(newScale);
 
-    // Re-clamp position immediately on zoom to ensure we stay within image bounds
+    // Real-Time Clamping: Immediately snap position back to edge if out of bounds
     const c = getConstraints();
-    if (x.get() < c.left) x.set(c.left);
-    if (x.get() > c.right) x.set(c.right);
-    if (y.get() < c.top) y.set(c.top);
-    if (y.get() > c.bottom) y.set(c.bottom);
+    const currentX = x.get();
+    const currentY = y.get();
+
+    if (currentX < c.left) x.set(c.left);
+    if (currentX > c.right) x.set(c.right);
+    if (currentY < c.top) y.set(c.top);
+    if (currentY > c.bottom) y.set(c.bottom);
   };
 
   return (
     <div 
       ref={containerRef}
-      className="map-container bg-black cursor-grab active:cursor-grabbing"
+      className="map-container bg-black cursor-grab active:cursor-grabbing h-screen w-screen overflow-hidden relative"
       onWheel={handleWheel}
     >
       <motion.div
@@ -132,15 +121,15 @@ export default function MapWrapper() {
           width: "100vw",
           height: "100vh",
         }}
-        className="relative"
+        className="relative flex items-center justify-center"
       >
         <Image 
           src={mapImg} 
-          alt="World Map" 
+          alt="Adventure Map" 
           fill
           priority
-          unoptimized
-          className="object-cover pointer-events-none select-none brightness-[0.98] contrast-[1.01]"
+          quality={100}
+          className="object-cover pointer-events-none select-none"
         />
         
         {/* Absolute Centered Markers */}
@@ -154,7 +143,7 @@ export default function MapWrapper() {
         </div>
 
         {/* Subtle Paper Grain Texture Overlay */}
-        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-10 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-15 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
       </motion.div>
     </div>
   );
