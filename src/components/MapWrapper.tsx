@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import MapLandmark from "./MapLandmark";
 import Image from "next/image";
@@ -41,99 +42,97 @@ const LANDMARKS = [
 ];
 
 export default function MapWrapper() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const mapSize = 4000;
   const mapImg = "https://iili.io/fti58ZB.png";
-
-  // Higher damping to prevent bouncy overshoot and reveal black background
-  const springConfig = { stiffness: 150, damping: 30, mass: 1 };
+  
+  // Spring config for smooth, organic scroll feel
+  const springConfig = { stiffness: 120, damping: 35, mass: 1 };
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const scale = useMotionValue(2.0); // Start at a safe, zoomed-in scale
+  const scale = useMotionValue(0.4); // Start zoomed out to see the scroll effect
 
   const springX = useSpring(x, springConfig);
   const springY = useSpring(y, springConfig);
   const springScale = useSpring(scale, springConfig);
 
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const [constraints, setConstraints] = useState({ left: 0, right: 0, top: 0, bottom: 0 });
 
-  const getConstraints = useCallback(() => {
-    if (windowSize.width === 0) return { left: 0, right: 0, top: 0, bottom: 0 };
-
+  const updateConstraints = useCallback(() => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
     const currentScale = scale.get();
     
-    // Physical Bound Logic: Ensures image edges never move past viewport edges
-    const horizontalBound = Math.max(0, (windowSize.width * currentScale - windowSize.width) / 2);
-    const verticalBound = Math.max(0, (windowSize.height * currentScale - windowSize.height) / 2);
+    // Calculate boundaries so the edges of the 4000px scroll are reachable
+    const visualWidth = mapSize * currentScale;
+    const visualHeight = mapSize * currentScale;
 
-    return {
-      left: -horizontalBound,
-      right: horizontalBound,
-      top: -verticalBound,
-      bottom: verticalBound,
+    // If visual size is larger than viewport, allow dragging to edges
+    const hBound = Math.max(0, (visualWidth - vw) / 2);
+    const vBound = Math.max(0, (visualHeight - vh) / 2);
+
+    setConstraints({
+      left: -hBound,
+      right: hBound,
+      top: -vBound,
+      bottom: vBound,
+    });
+  }, [scale]);
+
+  useEffect(() => {
+    updateConstraints();
+    window.addEventListener("resize", updateConstraints);
+    const unsubScale = scale.on("change", updateConstraints);
+    return () => {
+      window.removeEventListener("resize", updateConstraints);
+      unsubScale();
     };
-  }, [windowSize, scale]);
+  }, [scale, updateConstraints]);
 
   const handleWheel = (e: React.WheelEvent) => {
-    const delta = e.deltaY * -0.002;
-    
-    // HARD CLAMP: Minimum 2.0 scale for a massive safety buffer
-    const minScale = 2.0; 
-    const maxScale = 5.0;
+    const delta = e.deltaY * -0.001;
+    // Scale floor ensures it never looks too small on large monitors
+    const minScale = 0.25; 
+    const maxScale = 2.0;
     const newScale = Math.min(Math.max(scale.get() + delta, minScale), maxScale);
     scale.set(newScale);
 
-    // Real-Time Snap: Immediately force position into new constraints
-    const c = getConstraints();
-    const currentX = x.get();
-    const currentY = y.get();
-
-    if (currentX < c.left) x.set(c.left);
-    if (currentX > c.right) x.set(c.right);
-    if (currentY < c.top) y.set(c.top);
-    if (currentY > c.bottom) y.set(c.bottom);
+    // Immediate clamp to prevent reveal of the void during zoom
+    updateConstraints();
   };
 
   return (
     <div 
-      ref={containerRef}
-      className="map-container bg-[#fdf6e3] cursor-grab active:cursor-grabbing h-screen w-screen overflow-hidden relative"
+      className="w-full h-screen overflow-hidden bg-[#e8d8c3] cursor-grab active:cursor-grabbing relative flex items-center justify-center select-none"
       onWheel={handleWheel}
     >
       <motion.div
         drag
-        dragConstraints={getConstraints()}
-        dragElastic={0} // HARD CLAMP: No rubber-banding allowed
+        dragConstraints={constraints}
+        dragElastic={0}
         dragMomentum={true}
         style={{
           x: springX,
           y: springY,
           scale: springScale,
-          width: "100vw",
-          height: "100vh",
+          width: mapSize,
+          height: mapSize,
         }}
-        className="relative flex items-center justify-center"
+        className="relative flex-shrink-0 bg-transparent"
       >
         <div className="relative w-full h-full" style={{ imageRendering: 'high-quality' }}>
           <Image 
             src={mapImg} 
-            alt="Adventure Map" 
-            fill
+            alt="Parchment Map Scroll" 
+            width={mapSize}
+            height={mapSize}
             priority
-            unoptimized={true} // Stop Next.js from compressing the 4K source
-            className="object-cover pointer-events-none select-none"
+            unoptimized={true}
+            className="pointer-events-none select-none shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)]"
           />
         </div>
         
-        {/* Markers remain centered on their coordinates */}
+        {/* Landmarks are nested inside the scroll so they scale and move with the high-res texture */}
         <div className="absolute inset-0 z-10 pointer-events-none">
           {LANDMARKS.map((landmark) => (
             <MapLandmark 
@@ -143,9 +142,12 @@ export default function MapWrapper() {
           ))}
         </div>
 
-        {/* Paper Grain Overlay */}
-        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-15 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
+        {/* Dynamic Paper Grain Overlay */}
+        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-20 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
       </motion.div>
+
+      {/* Subtle Vignette for depth */}
+      <div className="fixed inset-0 pointer-events-none z-[80] shadow-[inset_0_0_150px_rgba(0,0,0,0.15)]" />
     </div>
   );
 }
