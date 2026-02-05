@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
@@ -46,11 +45,12 @@ export default function MapWrapper() {
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const mapImg = "https://iili.io/fti58ZB.png";
 
-  const springConfig = { stiffness: 150, damping: 30, mass: 0.8 };
+  // Higher damping to prevent bouncy overshoot and reveal black background
+  const springConfig = { stiffness: 150, damping: 30, mass: 1 };
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const scale = useMotionValue(1.5); // Start at a comfortable zoom
+  const scale = useMotionValue(2.0); // Start at a safe, zoomed-in scale
 
   const springX = useSpring(x, springConfig);
   const springY = useSpring(y, springConfig);
@@ -70,9 +70,9 @@ export default function MapWrapper() {
 
     const currentScale = scale.get();
     
-    // Physical Bound Logic: (windowDimension * currentScale - windowDimension) / 2
-    const horizontalBound = (windowSize.width * currentScale - windowSize.width) / 2;
-    const verticalBound = (windowSize.height * currentScale - windowSize.height) / 2;
+    // Physical Bound Logic: Ensures image edges never move past viewport edges
+    const horizontalBound = Math.max(0, (windowSize.width * currentScale - windowSize.width) / 2);
+    const verticalBound = Math.max(0, (windowSize.height * currentScale - windowSize.height) / 2);
 
     return {
       left: -horizontalBound,
@@ -83,16 +83,15 @@ export default function MapWrapper() {
   }, [windowSize, scale]);
 
   const handleWheel = (e: React.WheelEvent) => {
-    // Zoom sensitivity
-    const delta = e.deltaY * -0.001;
+    const delta = e.deltaY * -0.002;
     
-    // Enforce Scale Floor: Minimum 1.3 to ensure full coverage
-    const minScale = 1.3; 
-    const maxScale = 4.0;
+    // HARD CLAMP: Minimum 2.0 scale for a massive safety buffer
+    const minScale = 2.0; 
+    const maxScale = 5.0;
     const newScale = Math.min(Math.max(scale.get() + delta, minScale), maxScale);
     scale.set(newScale);
 
-    // Real-Time Clamping: Immediately snap position back to edge if out of bounds
+    // Real-Time Snap: Immediately force position into new constraints
     const c = getConstraints();
     const currentX = x.get();
     const currentY = y.get();
@@ -106,13 +105,13 @@ export default function MapWrapper() {
   return (
     <div 
       ref={containerRef}
-      className="map-container bg-black cursor-grab active:cursor-grabbing h-screen w-screen overflow-hidden relative"
+      className="map-container bg-[#fdf6e3] cursor-grab active:cursor-grabbing h-screen w-screen overflow-hidden relative"
       onWheel={handleWheel}
     >
       <motion.div
         drag
         dragConstraints={getConstraints()}
-        dragElastic={0.1}
+        dragElastic={0} // HARD CLAMP: No rubber-banding allowed
         dragMomentum={true}
         style={{
           x: springX,
@@ -123,16 +122,18 @@ export default function MapWrapper() {
         }}
         className="relative flex items-center justify-center"
       >
-        <Image 
-          src={mapImg} 
-          alt="Adventure Map" 
-          fill
-          priority
-          quality={100}
-          className="object-cover pointer-events-none select-none"
-        />
+        <div className="relative w-full h-full" style={{ imageRendering: 'high-quality' }}>
+          <Image 
+            src={mapImg} 
+            alt="Adventure Map" 
+            fill
+            priority
+            unoptimized={true} // Stop Next.js from compressing the 4K source
+            className="object-cover pointer-events-none select-none"
+          />
+        </div>
         
-        {/* Absolute Centered Markers */}
+        {/* Markers remain centered on their coordinates */}
         <div className="absolute inset-0 z-10 pointer-events-none">
           {LANDMARKS.map((landmark) => (
             <MapLandmark 
@@ -142,7 +143,7 @@ export default function MapWrapper() {
           ))}
         </div>
 
-        {/* Subtle Paper Grain Texture Overlay */}
+        {/* Paper Grain Overlay */}
         <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-15 bg-[url('https://www.transparenttextures.com/patterns/parchment.png')]" />
       </motion.div>
     </div>
